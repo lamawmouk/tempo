@@ -108,8 +108,8 @@ sup { font-size: 0.62em; margin-left: 1px; }
 .pitch em { font-style: normal; color: var(--blue); font-weight: 600; }
 
 .stats {
-  display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;
-  max-width: 760px; margin: 0 auto;
+  display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px;
+  max-width: 920px; margin: 0 auto;
 }
 .stat {
   padding: 12px 10px; border-radius: 12px;
@@ -183,6 +183,12 @@ mjx-container[display="true"] { max-width: 100%; overflow-x: auto; overflow-y: h
 .explorer { margin-top: 30px; padding: 26px; }
 .explorer-controls { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
 .seg { display: inline-flex; padding: 4px; border-radius: 12px; background: #f1f5f9; }
+.seg-groups { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; }
+.seg-tabs { display: flex; flex-wrap: wrap; gap: 22px; border-bottom: 1px solid var(--line); width: 100%; }
+.seg-tabs button { border: 0; background: none; cursor: pointer; padding: 6px 0 9px; margin-bottom: -1px;
+  font: 700 0.78rem 'Plus Jakarta Sans', sans-serif; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted);
+  border-bottom: 2px solid transparent; }
+.seg-tabs button.on { color: var(--ink); border-bottom-color: #2a78d6; }
 .seg button {
   border: 0; background: transparent; cursor: pointer;
   padding: 8px 16px; border-radius: 9px;
@@ -311,7 +317,8 @@ mjx-container[display="true"] { max-width: 100%; overflow-x: auto; overflow-y: h
 
 
 /* ---------- method: rollout video ---------- */
-.video-figure video { width: 100%; max-width: 820px; height: auto; display: block; margin: 0 auto; border-radius: 10px; background: #fff; }
+.video-figure { max-width: 860px; margin-left: auto; margin-right: auto; }
+.video-figure video { width: 100%; max-width: 700px; height: auto; display: block; margin: 0 auto; border-radius: 10px; background: #fff; }
 .pipeline-more { margin-top: 16px; border-top: 1px solid var(--line); padding-top: 12px; }
 .pipeline-more summary { cursor: pointer; font-weight: 600; color: var(--ink); list-style: none; }
 .pipeline-more summary::-webkit-details-marker { display: none; }
@@ -328,3 +335,4 @@ mjx-container[display="true"] { max-width: 100%; overflow-x: auto; overflow-y: h
 .problem-curve { max-width: 600px; margin: 24px auto 8px; padding: 14px 16px 12px; }
 .problem-curve img { width: 100%; height: auto; display: block; }
 .problem-curve figcaption { margin-top: 10px; text-align: center; }
+

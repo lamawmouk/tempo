@@ -56,6 +56,10 @@
 
       <div class="stats">
         <div class="stat">
+          <div class="stat-num grad">11</div>
+          <div class="stat-label">environments, navigation<br>to 3D manipulation</div>
+        </div>
+        <div class="stat">
           <div class="stat-num">36<span class="arrow">→</span><span class="grad">99%</span></div>
           <div class="stat-label">LeWM on TwoRoom,<br>three plans from the goal</div>
         </div>
@@ -110,12 +114,11 @@
     <h2 class="center">A small map that counts steps, blended into the planner's cost</h2>
     <figure class="card figure video-figure">
       <div class="video-head">
-        <p class="demo-q">Goal three plans away: same start, goal and frozen LeWM model</p>
-        <div class="seg" id="video-seg" role="group" aria-label="Environment"></div>
+        <p class="demo-q">Same start, goal and frozen LeWM model; only the planning cost differs</p>
+        <div class="seg-groups" id="video-seg" role="group" aria-label="Environment"></div>
       </div>
       <video id="rollout" autoplay muted loop playsinline preload="auto"></video>
-      <figcaption>Real rollouts (the environment's own frames), goal three plans (75 steps) away, same start, goal, frozen LeWM model and
-        search for both planners. <span id="video-caption"></span></figcaption>
+      <figcaption>Real rollouts; replays match the paper's results. <span id="video-caption"></span></figcaption>
       <details class="pipeline-more">
         <summary><i class="fas fa-diagram-project"></i>Show where TEMPO sits in the planner</summary>
         <img src="./static/images/fig_pipeline_temporal.png" alt="TEMPO in the planner.">
@@ -191,12 +194,6 @@
       <p class="fine">Success rate (%), mean over 3 seeds × 5 groups of 50 windows. Wall has no three-plan setting.</p>
     </div>
 
-    <figure class="card figure">
-      <img src="./static/images/fig_envs.png" alt="The evaluation environments.">
-      <figcaption>The eleven environments (maze navigation, two-joint reaching, contact-rich pushing, 3D manipulation with a robot arm and a
-        legged robot) and the two RoboCasa kitchen tasks. The agent sees only RGB frames; the goal is the expert's frame 25 to 75 steps
-        later.</figcaption>
-    </figure>
 
     <details class="card tables">
       <summary><i class="fas fa-table"></i>Full results tables (mean ± standard error)</summary>
@@ -434,26 +431,43 @@ document.getElementById("copy-bib").onclick = async (e) => {
 
 // ---------- method: rollout videos, one per environment ----------
 (function () {
-  const V = [{"key": "tworoom", "label": "TwoRoom", "caption": "Left: the LeWM planner circles beside the door until its 150 steps run out. Right: with TEMPO's cost the agent goes through the door and reaches the goal (green disc, the environment's success region) at step 32. This window is one of the 164 of 250 TwoRoom test windows where the plain planner fails and TEMPO succeeds; the replay matches the paper's recorded outcome for both planners."}];
+  const V = [{"key": "pusht", "label": "Push-T", "caption": "Goal: push the grey T into the pose shown in the goal frame, with the blue agent where it stands there (the green T is the environment's default marker, not this goal). LeWM runs out of steps; TEMPO pushes the block into the goal pose at step 69.", "group": "Standard"}, {"key": "tworoom", "label": "TwoRoom", "caption": "Goal: bring the red agent to its position in the goal frame, in the other room. LeWM never leaves the first room; TEMPO goes through the door and reaches the goal at step 116.", "group": "Standard"}, {"key": "cube", "label": "Cube", "caption": "Goal: pick up the red cube and carry it to where it is in the goal frame. LeWM leaves the cube on the table; TEMPO picks it up and brings it to the goal at step 21.", "group": "Standard"}, {"key": "scene", "label": "Scene", "caption": "Goal: press the left button, whose drawer handle turns red to show the drawer is locked, and leave the cube where it is. LeWM never presses the button; TEMPO presses it with the cube in place and reaches the goal at step 48.", "group": "Standard"}, {"key": "reacher", "label": "Reacher", "caption": "Goal: move the two-link arm into the pose shown in the goal frame. LeWM runs out of steps; TEMPO reaches the goal pose at step 50.", "group": "Standard"}, {"key": "pointmaze_m", "label": "PointMaze M", "group": "Complex", "caption": "Goal: roll the ball through the maze to its position in the goal frame. LeWM runs out of steps; TEMPO reaches the goal at step 62."}, {"key": "pointmaze_l", "label": "PointMaze L", "group": "Complex", "caption": "Goal: roll the ball through the larger maze to its position in the goal frame. LeWM runs out of steps; TEMPO reaches the goal at step 125."}, {"key": "antumaze", "label": "Ant-U-Maze", "group": "Complex", "caption": "Goal: walk the quadruped ant to its position in the goal frame. LeWM runs out of steps; TEMPO reaches the goal at step 91."}, {"key": "wall", "label": "Wall", "group": "Complex", "caption": "Goal: bring the red dot to its position in the goal frame, through the door in the wall (goal 40 steps ahead). LeWM stays pressed against the wall; TEMPO goes through the door and reaches the goal at step 19."}, {"key": "wallrandom", "label": "WallRandom", "group": "Out of distribution", "caption": "Goal: bring the red dot to its position in the goal frame, on a wall and door layout never seen in training (goal 25 steps ahead). LeWM heads the wrong way; TEMPO reaches the goal at step 8."}, {"key": "pushobj", "label": "PushObj", "group": "Out of distribution", "caption": "Goal: push the grey block, a + shape never seen in training, into the pose shown in the goal frame (the green shape is the environment's default marker, not this goal). LeWM leaves it at the wrong angle; TEMPO reaches the goal pose at step 67."}, {"key": "robocasa_pnp", "label": "Pick-and-Place", "group": "RoboCasa", "caption": "Goal: set the cup down in the sink, at its position in the goal frame. LeWM is still holding it above the sink when its steps run out; TEMPO sets it down and reaches the goal at step 8."}, {"key": "robocasa_nav", "label": "Kitchen-Nav", "group": "RoboCasa", "caption": "Goal: drive the mobile robot across the kitchen to its position in the goal frame, by the stove. LeWM stays at the counter where it started; TEMPO crosses the kitchen and reaches the goal at step 51."}];
   const seg = document.getElementById("video-seg"), vid = document.getElementById("rollout"), cap = document.getElementById("video-caption");
   let cur = V[0] && V[0].key;
   function show(k) {
     cur = k;
     const v = V.find(x => x.key === k);
-    seg.querySelectorAll("button").forEach(b => b.classList.toggle("on", b.dataset.k === k));
+    seg.querySelectorAll(".seg button").forEach(b => b.classList.toggle("on", b.dataset.k === k));
     vid.poster = `./static/videos/${k}_g75_lewm_vs_tempo.png`;
     vid.src = `./static/videos/${k}_g75_lewm_vs_tempo.mp4`;
     vid.setAttribute("aria-label", v.label + " rollouts: LeWM planner versus LeWM with TEMPO");
     cap.textContent = v.caption;
     vid.play().catch(() => {});
   }
-  V.forEach(v => {
-    const b = document.createElement("button");
-    b.type = "button"; b.textContent = v.label; b.dataset.k = v.key; b.onclick = () => show(v.key);
-    seg.appendChild(b);
+  // two rows: group tabs (Standard / Complex / Out of distribution / RoboCasa), then the active group's environments
+  const groups = [];
+  V.forEach(v => { const g = v.group || "All"; if (!groups.includes(g)) groups.push(g); });
+  const tabs = document.createElement("div"); tabs.className = "seg-tabs";
+  const pill = document.createElement("div"); pill.className = "seg";
+  seg.appendChild(tabs); seg.appendChild(pill);
+  function showGroup(g, key) {
+    tabs.querySelectorAll("button").forEach(b => b.classList.toggle("on", b.dataset.g === g));
+    pill.innerHTML = "";
+    V.filter(v => (v.group || "All") === g).forEach(v => {
+      const b = document.createElement("button");
+      b.type = "button"; b.textContent = v.label; b.dataset.k = v.key; b.onclick = () => show(v.key);
+      pill.appendChild(b);
+    });
+    show(key || V.find(v => (v.group || "All") === g).key);
+  }
+  groups.forEach(g => {
+    const t = document.createElement("button");
+    t.type = "button"; t.textContent = g; t.dataset.g = g; t.onclick = () => showGroup(g);
+    tabs.appendChild(t);
   });
+  tabs.style.display = groups.length > 1 ? "" : "none";
   seg.style.display = V.length > 1 ? "" : "none";
-  if (cur) show(cur);
+  if (cur) showGroup(V[0].group || "All", cur);
 })();
 </script>
 </body>
