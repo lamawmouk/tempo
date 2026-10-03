@@ -319,3 +319,7 @@ mjx-container[display="true"] { max-width: 100%; overflow-x: auto; overflow-y: h
 .pipeline-more img { margin-top: 14px; }
 
 .video-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
+
+/* ---------- teaser video (top of page) ---------- */
+.teaser-video { max-width: 960px; margin: 0 auto; padding: 10px; }
+.teaser-video video { max-width: 100%; border-radius: 12px; background: #f6f8fc; }
