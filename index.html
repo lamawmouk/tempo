@@ -83,20 +83,11 @@
     <p class="lead center narrow-text">Latent world models like LeWM and PLDM pick the plan whose imagined end state <em>looks</em> most like
       the goal. Up close that works. Move the goal a few plans away and success collapses.</p>
 
-    <div class="collapse-strip" id="collapse-strip">
-      <div class="collapse-card">
-        <p class="collapse-env">TwoRoom</p>
-        <div class="collapse-nums"><span class="c-from">88%</span><span class="c-arrow">→</span><span class="c-to">36%</span></div>
-        <div class="c-bar"><div class="c-fill" data-from="87.7" data-to="36.3"></div></div>
-        <p class="collapse-label">LeWM, one plan → three plans from the goal</p>
-      </div>
-      <div class="collapse-card">
-        <p class="collapse-env">Push-T</p>
-        <div class="collapse-nums"><span class="c-from">94%</span><span class="c-arrow">→</span><span class="c-to">22%</span></div>
-        <div class="c-bar"><div class="c-fill" data-from="93.6" data-to="22.0"></div></div>
-        <p class="collapse-label">LeWM, one plan → three plans from the goal</p>
-      </div>
-    </div>
+    <figure class="card figure problem-curve">
+      <img src="./static/images/fig_teaser_curve.png" alt="TwoRoom success against goal distance: the LeWM planner falls from 88% at one plan to 36% at three plans; with TEMPO it stays between 97% and 99%.">
+      <figcaption>TwoRoom success as the goal moves from one to three plans away (25 to 75 steps). The LeWM planner falls from 88% to 36%;
+        with TEMPO it stays at 97 to 99%.</figcaption>
+    </figure>
 
     <div class="versus">
       <div class="vs-card vs-old">
@@ -393,8 +384,8 @@ document.getElementById("copy-bib").onclick = async (e) => {
 
 // ---------- problem section: collapse bars and the wall/door demo ----------
 (function () {
-  const strip = document.getElementById("collapse-strip");
-  const fills = strip.querySelectorAll(".c-fill");
+  const strip = document.getElementById("collapse-strip");   // replaced by the teaser curve; kept guarded in case it returns
+  const fills = strip ? strip.querySelectorAll(".c-fill") : [];
   fills.forEach(f => { f.style.width = f.dataset.from + "%"; });
   const shrink = () => fills.forEach(f => { f.style.width = f.dataset.to + "%"; });
 
@@ -439,7 +430,7 @@ document.getElementById("copy-bib").onclick = async (e) => {
     play("latent");
     if (!reduce) setTimeout(() => play("tempo"), 3400);
   }
-  if ("IntersectionObserver" in window) {
+  if (strip && "IntersectionObserver" in window) {
     new IntersectionObserver((es, ob) => {
       if (es.some(e => e.isIntersecting)) { shrink(); ob.disconnect(); }
     }, { threshold: 0.4 }).observe(strip);
