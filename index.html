@@ -23,7 +23,6 @@
   <div class="nav-inner">
     <a class="brand" href="#top">TEMPO</a>
     <div class="nav-links">
-      <a href="#video">Video</a>
       <a href="#problem">Problem</a>
       <a href="#method">Method</a>
       <a href="#results">Results</a>
@@ -47,39 +46,8 @@
       <a class="btn btn-accent" href="#cite"><i class="fas fa-quote-right"></i>Cite</a>
     </div>
 
-    <figure class="card figure hero-figure hero-duo">
-      <div class="duo">
-        <div class="duo-demo" id="demo">
-          <div class="demo-head">
-            <p class="demo-q">Goal three plans away. Which way?</p>
-            <div class="seg" id="demo-seg" role="group" aria-label="Planning cost">
-              <button type="button" data-mode="latent">Latent distance</button>
-              <button type="button" data-mode="tempo">TEMPO</button>
-            </div>
-          </div>
-          <svg viewBox="0 0 640 300" class="demo-svg" role="img" aria-label="Illustration: latent distance drives the agent into the wall; TEMPO takes it through the door.">
-            <rect x="8" y="8" width="624" height="284" rx="14" class="room"/>
-            <rect x="314" y="8" width="12" height="96" class="wall"/>
-            <rect x="314" y="170" width="12" height="122" class="wall"/>
-            <text x="302" y="120" class="door-label" text-anchor="end">door</text>
-            <path id="path-latent" d="M 96 222 L 300 222" class="ghost"/>
-            <path id="path-tempo" d="M 96 222 C 180 222, 250 137, 320 137 S 470 200, 540 214" class="ghost"/>
-            <path id="trail" d="" class="trail"/>
-            <g class="goal" transform="translate(540 214)"><polygon points="0,-17 5,-5 17,-5 7,3 11,16 0,8 -11,16 -7,3 -17,-5 -5,-5"/></g>
-            <text x="540" y="252" class="g-label" text-anchor="middle">goal</text>
-            <circle id="agent" cx="96" cy="222" r="11" class="agent"/>
-            <text x="96" y="256" class="a-label" text-anchor="middle">agent</text>
-            <g id="bump" class="bump" opacity="0"><circle cx="300" cy="222" r="20"/><text x="300" y="186" text-anchor="middle">stuck</text></g>
-          </svg>
-          <p class="demo-status" id="demo-status">&nbsp;</p>
-        </div>
-        <div class="duo-curve">
-          <img src="./static/images/fig_teaser_curve.png" alt="TwoRoom success as the goal moves from one to three plans away: LeWM 88% to 36%, with TEMPO 97% to 99%.">
-        </div>
-      </div>
-      <figcaption><strong>How long, not how close.</strong> Left (schematic, click to switch): far from the goal, the latent distance prefers
-        the plan whose end state <em>looks</em> most like the goal, into the wall; a distance that counts steps takes the door. Right: TwoRoom
-        success as the goal moves from one to three plans away.</figcaption>
+    <figure class="card figure hero-figure teaser-video">
+      <video src="./static/videos/tempo_teaser.mp4" poster="./static/videos/tempo_teaser.jpg" controls muted playsinline preload="metadata"></video>
     </figure>
 
     <div class="summary">
@@ -107,16 +75,6 @@
     </div>
   </div>
 </header>
-
-<section class="section" id="video">
-  <div class="wrap">
-    <p class="kicker center">Video</p>
-    <h2 class="center">TEMPO in under a minute</h2>
-    <figure class="card figure video-figure teaser-video">
-      <video src="./static/videos/tempo_teaser.mp4" poster="./static/videos/tempo_teaser.jpg" controls muted playsinline preload="metadata"></video>
-    </figure>
-  </div>
-</section>
 
 <section class="section" id="problem">
   <div class="wrap">
@@ -477,8 +435,10 @@ document.getElementById("copy-bib").onclick = async (e) => {
   }
   segBtns.forEach(b => b.onclick = () => play(b.dataset.mode));
 
-  play("latent");
-  if (!reduce) setTimeout(() => play("tempo"), 3400);
+  if (agent) {   // the wall/door demo (no longer in the hero: the teaser video replaced it)
+    play("latent");
+    if (!reduce) setTimeout(() => play("tempo"), 3400);
+  }
   if ("IntersectionObserver" in window) {
     new IntersectionObserver((es, ob) => {
       if (es.some(e => e.isIntersecting)) { shrink(); ob.disconnect(); }
