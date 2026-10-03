@@ -1,0 +1,33 @@
+# TEMPO defaults (the paper's settings). Override any key on the command line: `tempo run ... eval.goal_offset=75`.
+map:                    # F_phi: latent -> 64-d temporal embedding
+  dim: 64
+  hidden: 256
+  layers: 2
+  kappa: 25.0           # env steps per unit distance (one plan)
+  max_steps: 75         # calibrated up to three plans; farther pairs only pushed apart
+  far_weight: 0.5
+  lr: 1.0e-3
+  batch_size: 256
+  grad_clip: 10.0
+planner:                # CEM shared by every method
+  num_samples: 300
+  n_steps: 30
+  topk: 30
+  horizon: 5            # blocks
+  action_block: 5       # env steps per block -> H = 25
+  receding: 5           # execute the whole plan, then replan
+  history_len: 3
+  warm_start: true
+  cost_weight: 0.5      # w; 0 = the world model's own planner
+train:
+  offline_windows: 20000
+  offline_steps: 3000
+  online_rounds: 8
+  updates_per_plan: 5
+  updates_per_episode: 50
+eval:
+  goal_offset: 25       # 25 / 50 / 75 = one / two / three plans
+  budget_factor: 2      # episode budget = 2 x goal_offset
+  groups: 5
+  windows: 50
+  planner_seed: 42

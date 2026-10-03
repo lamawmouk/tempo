@@ -1,0 +1,5 @@
+# World-model-level 90/10 episode split: boards and F_phi train on 90 %, evaluation windows come from unseen episodes.
+extends: tworoom
+dataset: tworoom/tworoom_expert_train.lance
+eval_dataset: tworoom/tworoom_expert_val.lance
+cell: two10v

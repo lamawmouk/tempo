@@ -1,0 +1,3 @@
+# Unseen wall / door layouts with the board and F_phi trained on the training layouts.
+extends: wallrandom
+eval_dataset: wall/wall_random_val.lance

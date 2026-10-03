@@ -1,0 +1,10 @@
+env_id: swm/ReacherDMControl-v0
+dataset: dmc/reacher.lance
+cell: rea10
+callables:
+  - {method: set_state, args: {qpos: {value: qpos}, qvel: {value: qvel}}}
+  - {method: set_target_qpos, args: {target_qpos: {value: goal_qpos}}}
+history_keys: [pixels, observation]
+process_keys: [action, observation]
+state_col: qpos
+world_kwargs: {task: qpos_match}

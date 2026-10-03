@@ -1,0 +1,28 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Experiment outputs
+runs/
+outputs/
+wandb/
+*.npz
+*.pt
+*.ckpt
+*.lance/
+slurm-*.out
+logs/
+
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store

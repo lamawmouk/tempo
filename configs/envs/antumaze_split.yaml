@@ -1,0 +1,4 @@
+extends: antumaze
+dataset: antumaze/antumaze_expert_split90.lance
+eval_dataset: antumaze/antumaze_expert_split10.lance
+cell: anu10v

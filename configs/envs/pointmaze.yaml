@@ -1,0 +1,8 @@
+# OGBench point maze (medium) from pixels; reset and goal come from the dataset row (no callables needed).
+env_id: tempo/PointMazeMedium-v0
+import_hook: tempo.envs.point_maze
+dataset: ogbench/pointmaze_medium_expert.lance
+cell: pmz10
+history_keys: [pixels, proprio]
+process_keys: [action, proprio]
+state_col: state

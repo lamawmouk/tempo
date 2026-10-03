@@ -1,0 +1,26 @@
+# OGBench Scene: every goal component (cube, buttons, drawer, window) is imposed from the goal row.
+env_id: swm/OGBScene-v0
+dataset: ogbench/scene_single_expert.lance
+cell: scn10
+callables:
+  - method: set_state
+    args:
+      qpos: {value: qpos}
+      qvel: {value: qvel}
+      button_state_0: {value: privileged/button_0_state, cast: int}
+      button_state_1: {value: privileged/button_1_state, cast: int}
+  - method: set_cube_target_pos
+    args:
+      cube_id: {value: 0, in_dataset: false}
+      target_pos: {value: goal_privileged/block_0_pos}
+      target_quat: {value: goal_privileged/block_0_quat}
+  - method: set_target_button_state
+    args: {button_id: {value: 0, in_dataset: false}, target_state: {value: goal_privileged/button_0_state, cast: int}}
+  - method: set_target_button_state
+    args: {button_id: {value: 1, in_dataset: false}, target_state: {value: goal_privileged/button_1_state, cast: int}}
+  - {method: set_target_drawer_pos, args: {target_pos: {value: goal_privileged/drawer_pos}}}
+  - {method: set_target_window_pos, args: {target_pos: {value: goal_privileged/window_pos}}}
+history_keys: [pixels, observation]
+process_keys: [action, observation]
+state_col: qpos
+world_kwargs: {ob_type: states, multiview: false, width: 224, height: 224, visualize_info: false, terminate_at_goal: true}

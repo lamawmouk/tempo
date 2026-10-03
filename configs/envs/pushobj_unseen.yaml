@@ -1,0 +1,3 @@
+# Unseen block shapes (L, I, +) with the board and F_phi trained on the four training shapes.
+extends: pushobj
+eval_dataset: pusht_obj/test.lance

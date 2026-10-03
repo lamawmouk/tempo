@@ -1,0 +1,9 @@
+env_id: swm/PushT-v1
+dataset: pusht_expert_train.lance
+cell: swm10
+callables:
+  - {method: _set_state, args: {state: {value: state}}}
+  - {method: _set_goal_state, args: {goal_state: {value: goal_state}}}
+history_keys: [pixels, proprio]
+process_keys: [action, proprio, state]
+state_col: state

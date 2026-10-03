@@ -1,0 +1,4 @@
+extends: reacher
+dataset: dmc/reacher_split90.lance
+eval_dataset: dmc/reacher_split10.lance
+cell: rea10v

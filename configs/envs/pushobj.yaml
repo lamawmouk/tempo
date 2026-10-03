@@ -1,0 +1,11 @@
+# Push-T with four training block shapes; the env restores each window's block shape.
+env_id: tempo/PushTObj-v0
+import_hook: tempo.envs.push_obj
+dataset: pusht_obj/train.lance
+cell: pob10
+callables:
+  - {method: _set_state, args: {state: {value: state}}}
+  - {method: _set_goal_state, args: {goal_state: {value: goal_state}}}
+history_keys: [pixels, proprio]
+process_keys: [action, proprio, state]
+state_col: state

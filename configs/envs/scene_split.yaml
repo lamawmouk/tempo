@@ -1,0 +1,4 @@
+extends: scene
+dataset: ogbench/scene_single_expert_split90.lance
+eval_dataset: ogbench/scene_single_expert_split10.lance
+cell: scn10v

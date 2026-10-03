@@ -1,0 +1,4 @@
+extends: pointmaze
+env_id: tempo/PointMazeLarge-v0
+dataset: ogbench/pointmaze_large_expert.lance
+cell: pml10

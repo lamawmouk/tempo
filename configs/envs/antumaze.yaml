@@ -1,0 +1,12 @@
+# D4RL Ant-U-Maze from pixels (D4RL actions re-simulated, scripts/data/convert_d4rl_antumaze.py).
+# Eval windows: goal >= 1 m from the start, ant upright at start and goal, and reachable by replaying the recorded actions.
+env_id: tempo/AntUMaze-v0
+import_hook: tempo.envs.ant_umaze
+dataset: antumaze/antumaze_expert.lance
+cell: anu10
+history_keys: [pixels, proprio]
+process_keys: [action, proprio]
+state_col: state
+trivial_tol: 1.0
+window_flag_col: upright
+reach_sidecar: true

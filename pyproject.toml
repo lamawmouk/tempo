@@ -1,0 +1,50 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "tempo"
+version = "0.1.0"
+description = "TEMPO: a temporal-distance planning objective for frozen latent world models"
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.10"
+dependencies = [
+  "torch>=2.0",
+  "torchvision",
+  "numpy",
+  "scikit-learn",
+  "pyyaml",
+  "gymnasium",
+  # the planning API TEMPO builds on (ShootingCostEvaluator, GoalMSE) is newer than the PyPI release
+  "stable-worldmodel[data] @ git+https://github.com/galilai-group/stable-worldmodel@15a8bb498ceda5c02100663c5b552b40c0e978ae",
+]
+
+[project.optional-dependencies]
+envs = ["gymnasium-robotics", "mujoco", "pylance"]   # point maze, Ant-U-Maze, dataset tools
+dev = ["pytest>=7", "ruff", "pylance"]
+
+[project.urls]
+Repository = "https://github.com/lamawmouk/tempo"
+
+[project.scripts]
+tempo = "tempo.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+"tempo.envs" = ["assets/*.xml"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+
+[tool.ruff]
+line-length = 140
+target-version = "py310"
+extend-exclude = ["*.md"]  # README snippets keep their aligned comments
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "W"]
+ignore = ["E402", "E501", "E731"]  # line length is left to `ruff format`

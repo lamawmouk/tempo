@@ -1,0 +1,6 @@
+# Wall with random wall / door layouts. Requires p3_swm (see wall.yaml).
+extends: wall
+env_id: tempo/WallRandom-v0
+import_hook: tempo.envs.wall_random
+dataset: wall/wall_random.lance
+cell: wrn10

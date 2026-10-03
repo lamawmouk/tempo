@@ -1,0 +1,9 @@
+env_id: swm/TwoRoom-v1
+dataset: tworoom/tworoom_expert.lance
+cell: two10
+callables:
+  - {method: _set_state, args: {state: {value: pos_agent}}}
+  - {method: _set_goal_state, args: {goal_state: {value: goal_pos_agent}}}
+history_keys: [pixels, proprio]
+process_keys: [action, proprio]
+state_col: pos_agent

@@ -1,0 +1,4 @@
+extends: pointmaze
+dataset: ogbench/pointmaze_medium_expert_split90.lance
+eval_dataset: ogbench/pointmaze_medium_expert_split10.lance
+cell: pmz10v
