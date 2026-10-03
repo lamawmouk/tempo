@@ -325,6 +325,6 @@ mjx-container[display="true"] { max-width: 100%; overflow-x: auto; overflow-y: h
 .teaser-video video { max-width: 100%; border-radius: 12px; background: #f6f8fc; }
 
 /* ---------- problem: teaser success curve ---------- */
-.problem-curve { max-width: 560px; margin: 28px auto 8px; padding: 20px 22px 16px; }
+.problem-curve { max-width: 400px; margin: 24px auto 8px; padding: 14px 16px 12px; }
 .problem-curve img { width: 100%; height: auto; display: block; }
 .problem-curve figcaption { margin-top: 10px; text-align: center; }
