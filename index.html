@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TEMPO: How Long, Not How Close</title>
+  <meta name="description" content="TEMPO: a learned temporal metric that lets frozen latent world models plan to goals several plans away. LeWM 36% to 99% on TwoRoom, with a 0.13M-parameter map and at most 0.3% extra compute.">
+  <meta property="og:title" content="How Long, Not How Close: A Learned Temporal Metric for Planning in Latent World Models">
+  <meta property="og:description" content="Frozen world-model planners collapse when the goal is several plans away. TEMPO fixes the cost, not the model: LeWM 36% to 99% on TwoRoom.">
+  <meta property="og:image" content="./static/images/fig_teaser_temporal.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/academicons/1.9.4/css/academicons.min.css">
+  <script>window.MathJax = { tex: { inlineMath: [['$', '$']], displayMath: [['$$', '$$']] }, chtml: { scale: 0.95 } };</script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+  <link rel="stylesheet" href="./static/css/index.css">
+</head>
+<body>
+
+<nav class="topnav">
+  <div class="nav-inner">
+    <a class="brand" href="#top">TEMPO</a>
+    <div class="nav-links">
+      <a href="#problem">Problem</a>
+      <a href="#method">Method</a>
+      <a href="#results">Results</a>
+      <a href="#generalisation">Generalisation</a>
+      <a href="#cite" class="nav-cite">Cite</a>
+    </div>
+  </div>
+</nav>
+
+<header class="hero" id="top">
+  <div class="wrap">
+    <h1 class="title"><span class="grad">How Long, Not How Close:</span><br>A Learned Temporal Metric for Planning in Latent World Models</h1>
+
+    <p class="authors">Lama Moukheiber<sup>1</sup>, Haotian Xue<sup>1</sup>, Yongxin Chen<sup>1</sup></p>
+    <p class="affil"><sup>1</sup><img class="affil-logo" src="./static/images/gt_logo.svg" alt="Georgia Institute of Technology"></p>
+
+    <div class="buttons">
+      <a class="btn" href="./static/tempo_paper.pdf" target="_blank" rel="noopener"><i class="fas fa-file-pdf"></i>Paper</a>
+      <!-- TODO: arXiv abstract URL once posted; then drop "is-soon" -->
+      <a class="btn is-soon"><i class="ai ai-arxiv"></i>arXiv <small>soon</small></a>
+      <a class="btn" href="https://github.com/lamawmouk/tempo" target="_blank" rel="noopener"><i class="fab fa-github"></i>Code</a>
+      <a class="btn btn-accent" href="#cite"><i class="fas fa-quote-right"></i>Cite</a>
+    </div>
+
+    <figure class="card figure hero-figure hero-duo">
+      <div class="duo">
+        <div class="duo-demo" id="demo">
+          <div class="demo-head">
+            <p class="demo-q">Goal three plans away. Which way?</p>
+            <div class="seg" id="demo-seg" role="group" aria-label="Planning cost">
+              <button type="button" data-mode="latent">Latent distance</button>
+              <button type="button" data-mode="tempo">TEMPO</button>
+            </div>
+          </div>
+          <svg viewBox="0 0 640 300" class="demo-svg" role="img" aria-label="Illustration: latent distance drives the agent into the wall; TEMPO takes it through the door.">
+            <rect x="8" y="8" width="624" height="284" rx="14" class="room"/>
+            <rect x="314" y="8" width="12" height="96" class="wall"/>
+            <rect x="314" y="170" width="12" height="122" class="wall"/>
+            <text x="302" y="120" class="door-label" text-anchor="end">door</text>
+            <path id="path-latent" d="M 96 222 L 300 222" class="ghost"/>
+            <path id="path-tempo" d="M 96 222 C 180 222, 250 137, 320 137 S 470 200, 540 214" class="ghost"/>
+            <path id="trail" d="" class="trail"/>
+            <g class="goal" transform="translate(540 214)"><polygon points="0,-17 5,-5 17,-5 7,3 11,16 0,8 -11,16 -7,3 -17,-5 -5,-5"/></g>
+            <text x="540" y="252" class="g-label" text-anchor="middle">goal</text>
+            <circle id="agent" cx="96" cy="222" r="11" class="agent"/>
+            <text x="96" y="256" class="a-label" text-anchor="middle">agent</text>
+            <g id="bump" class="bump" opacity="0"><circle cx="300" cy="222" r="20"/><text x="300" y="186" text-anchor="middle">stuck</text></g>
+          </svg>
+          <p class="demo-status" id="demo-status">&nbsp;</p>
+        </div>
+        <div class="duo-curve">
+          <img src="./static/images/fig_teaser_curve.png" alt="TwoRoom success as the goal moves from one to three plans away: LeWM 88% to 36%, with TEMPO 97% to 99%.">
+        </div>
+      </div>
+      <figcaption><strong>How long, not how close.</strong> Left (schematic, click to switch): far from the goal, the latent distance prefers
+        the plan whose end state <em>looks</em> most like the goal, into the wall; a distance that counts steps takes the door. Right: TwoRoom
+        success as the goal moves from one to three plans away.</figcaption>
+    </figure>
+
+    <div class="summary">
+      <p class="pitch">A latent world model predicts what happens next, but its planning cost cannot tell <em>how far</em> the goal is.
+        <strong>TEMPO</strong> teaches it, without touching the model.</p>
+
+      <div class="stats">
+        <div class="stat">
+          <div class="stat-num">36<span class="arrow">→</span><span class="grad">99%</span></div>
+          <div class="stat-label">LeWM on TwoRoom,<br>three plans from the goal</div>
+        </div>
+        <div class="stat">
+          <div class="stat-num">17<span class="arrow">→</span><span class="grad">75%</span></div>
+          <div class="stat-label">LeWM on cross-room,<br>three plans from the goal</div>
+        </div>
+        <div class="stat">
+          <div class="stat-num grad">0.13M</div>
+          <div class="stat-label">parameters added,<br>world model left frozen</div>
+        </div>
+        <div class="stat">
+          <div class="stat-num grad">≤0.3%</div>
+          <div class="stat-label">extra arithmetic<br>per plan</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<section class="section" id="problem">
+  <div class="wrap">
+    <p class="kicker center">The problem</p>
+    <h2 class="center">Far from the goal, the planner walks into the wall</h2>
+    <p class="lead center narrow-text">Latent world models like LeWM and PLDM pick the plan whose imagined end state <em>looks</em> most like
+      the goal. Up close that works. Move the goal a few plans away and success collapses.</p>
+
+    <div class="collapse-strip" id="collapse-strip">
+      <div class="collapse-card">
+        <p class="collapse-env">TwoRoom</p>
+        <div class="collapse-nums"><span class="c-from">88%</span><span class="c-arrow">→</span><span class="c-to">36%</span></div>
+        <div class="c-bar"><div class="c-fill" data-from="87.7" data-to="36.3"></div></div>
+        <p class="collapse-label">LeWM, one plan → three plans from the goal</p>
+      </div>
+      <div class="collapse-card">
+        <p class="collapse-env">Push-T</p>
+        <div class="collapse-nums"><span class="c-from">94%</span><span class="c-arrow">→</span><span class="c-to">22%</span></div>
+        <div class="c-bar"><div class="c-fill" data-from="93.6" data-to="22.0"></div></div>
+        <p class="collapse-label">LeWM, one plan → three plans from the goal</p>
+      </div>
+    </div>
+
+    <div class="versus">
+      <div class="vs-card vs-old">
+        <p class="vs-tag">Latent distance asks</p>
+        <p class="vs-q">"How much does your end state <em>look like</em> the goal?"</p>
+        <p class="vs-a">Several plans away, the best-looking state is pressed against the wall, dozens of steps from the goal.</p>
+      </div>
+      <div class="vs-card vs-new">
+        <p class="vs-tag">TEMPO asks</p>
+        <p class="vs-q">"How many <em>steps</em> are you from the goal?"</p>
+        <p class="vs-a">Every short plan is ranked by how much of the task it leaves, so the chain of plans follows the real route.</p>
+      </div>
+    </div>
+
+    <div class="callout narrow-text">
+      <i class="fas fa-lightbulb"></i>
+      <p>The collapse comes from the <strong>cost</strong> the planners share, not from any one world model. So we fix the cost and leave
+        the model alone.</p>
+    </div>
+  </div>
+</section>
+
+<section class="section alt" id="method">
+  <div class="wrap">
+    <p class="kicker center">The method</p>
+    <h2 class="center">A small map that counts steps, blended into the planner's cost</h2>
+    <figure class="card figure video-figure">
+      <div class="video-head">
+        <p class="demo-q">Goal three plans away: same start, goal and frozen LeWM model</p>
+        <div class="seg" id="video-seg" role="group" aria-label="Environment"></div>
+      </div>
+      <video id="rollout" autoplay muted loop playsinline preload="auto"></video>
+      <figcaption>Real rollouts (the environment's own frames), goal three plans (75 steps) away, same start, goal, frozen LeWM model and
+        search for both planners. <span id="video-caption"></span></figcaption>
+      <details class="pipeline-more">
+        <summary><i class="fas fa-diagram-project"></i>Show where TEMPO sits in the planner</summary>
+        <img src="./static/images/fig_pipeline_temporal.png" alt="TEMPO in the planner.">
+        <p class="fine">LeWM's frozen encoder $E$ and predictor $\mathrm{WM}$ are unchanged and nothing is decoded. TEMPO adds the map
+          $F_\phi$ (orange) and scores each CEM candidate by how many steps its end state still is from the goal.</p>
+      </details>
+    </figure>
+
+    <div class="steps">
+      <details class="step">
+        <summary>
+          <div class="step-num">1</div>
+          <h3>Learn to count steps</h3>
+          <p class="step-brief">A tiny network learns a distance that counts environment steps.</p>
+          <span class="step-more">Details <i class="fas fa-chevron-down"></i></span>
+        </summary>
+        <p>$F_\phi$, a two-layer MLP on the frozen 192-d latent, is trained so that the distance between two frames of the same episode equals
+          the steps between them, one unit per 25-step plan: targets $k/\kappa$ with $\kappa = 25$, up to $75/\kappa = 3$. Pairs more than
+          75 steps apart are only pushed at least 3 units apart, so a state beyond three plans never looks closer than one within range.</p>
+      </details>
+      <details class="step">
+        <summary>
+          <div class="step-num">2</div>
+          <h3>Blend into the cost</h3>
+          <p class="step-brief">Add that distance to the planner's usual latent cost.</p>
+          <span class="step-more">Details <i class="fas fa-chevron-down"></i></span>
+        </summary>
+        <p>The planner minimises</p>
+        <div class="eq">$$J = (1-w)\,\lVert \hat z_{t+H} - G\rVert^2 \\ +\, w\,\bar d_H^{\,2}\,\lVert F_\phi(\hat z_{t+H}) - F_\phi(G)\rVert^2$$</div>
+        <p>with $w = 0.5$. The latent term keeps the fine positioning manipulation needs; the temporal term orders plans by how far they still are from the
+          goal.</p>
+      </details>
+      <details class="step">
+        <summary>
+          <div class="step-num">3</div>
+          <h3>Plan exactly as before</h3>
+          <p class="step-brief">Same frozen model, same search. Nothing else changes.</p>
+          <span class="step-more">Details <i class="fas fa-chevron-down"></i></span>
+        </summary>
+        <p>Same frozen world model, same CEM, same horizon, same replanning. No rewards, policies, success labels or environment state: only
+          the time steps of the trajectories the world model was already trained on.</p>
+      </details>
+    </div>
+
+    <div class="chips">
+      <span class="chip"><i class="fas fa-snowflake"></i>World model stays frozen</span>
+      <span class="chip"><i class="fas fa-ban"></i>No rewards or success labels</span>
+      <span class="chip"><i class="fas fa-database"></i>Same data as the world model</span>
+      <span class="chip"><i class="fas fa-bolt"></i>≤0.3% extra arithmetic per plan</span>
+      <span class="chip"><i class="fas fa-plug"></i>Works with LeWM and PLDM</span>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="results">
+  <div class="wrap">
+    <p class="kicker center">Results</p>
+    <h2 class="center">Better at every goal distance, on both planners</h2>
+    <p class="lead center narrow-text">Eleven environments, from maze navigation to 3D manipulation, evaluated on identical windows one, two and
+      three plans from the goal. Each TEMPO run keeps the planner and changes only the cost it minimises.</p>
+
+    <div class="card explorer">
+      <div class="explorer-controls">
+        <div class="seg" id="seg-planner" role="group" aria-label="Planner"></div>
+        <div class="seg" id="seg-horizon" role="group" aria-label="Goal distance"></div>
+      </div>
+      <div class="legend">
+        <span><i class="sw sw-flat"></i><span id="lg-flat">Planner</span></span>
+        <span><i class="sw sw-ours"></i><span id="lg-ours">+ TEMPO (ours)</span></span>
+        <span class="legend-gain" id="avg-gain"></span>
+      </div>
+      <div id="bars" class="bars"></div>
+      <p class="fine">Success rate (%), mean over 3 seeds × 5 groups of 50 windows. Wall has no three-plan setting.</p>
+    </div>
+
+    <figure class="card figure">
+      <img src="./static/images/fig_envs.png" alt="The evaluation environments.">
+      <figcaption>The eleven environments (maze navigation, two-joint reaching, contact-rich pushing, 3D manipulation with a robot arm and a
+        legged robot) and the two RoboCasa kitchen tasks. The agent sees only RGB frames; the goal is the expert's frame 25 to 75 steps
+        later.</figcaption>
+    </figure>
+
+    <details class="card tables">
+      <summary><i class="fas fa-table"></i>Full results tables (mean ± standard error)</summary>
+      <h3>Standard tasks</h3>
+      <div class="table-wrapper"><table class="results-table">
+<thead>
+<tr>
+<th>Planner</th>
+<th>TwoRoom</th>
+<th>Reacher</th>
+<th>Push-T</th>
+<th>Cube</th>
+<th>Scene</th>
+<th>Avg.</th>
+<th>Δ</th>
+</tr>
+</thead>
+<tbody>
+<tr class="group-row"><td colspan="8">LeWM</td></tr>
+<tr><td>one plan</td><td>87.7±0.8</td><td>94.7±0.7</td><td>93.6±1.0</td><td>74.8±2.4</td><td>69.6±1.1</td><td>84.1</td><td>–</td></tr>
+<tr class="ours-row"><td>+ TEMPO (ours)</td><td><strong>97.2±0.6</strong></td><td><strong>95.5±0.7</strong></td><td><strong>95.1±0.6</strong></td><td><strong>77.1±1.7</strong></td><td><strong>71.1±1.1</strong></td><td><strong>87.2</strong></td><td>+3.1</td></tr>
+<tr><td>two plans</td><td>58.5±1.7</td><td>95.7±0.6</td><td>49.7±1.3</td><td>57.9±2.4</td><td>56.4±1.2</td><td>63.7</td><td>–</td></tr>
+<tr class="ours-row"><td>+ TEMPO (ours)</td><td><strong>99.2±0.3</strong></td><td><strong>96.8±0.5</strong></td><td><strong>55.7±1.2</strong></td><td><strong>58.7±2.0</strong></td><td><strong>57.9±1.3</strong></td><td><strong>73.7</strong></td><td>+10.0</td></tr>
+<tr><td>three plans</td><td>36.3±2.3</td><td>89.7±0.4</td><td>22.0±0.6</td><td>68.7±1.6</td><td>48.7±1.3</td><td>53.1</td><td>–</td></tr>
+<tr class="ours-row"><td>+ TEMPO (ours)</td><td><strong>99.2±0.3</strong></td><td><strong>98.4±0.5</strong></td><td><strong>28.1±2.0</strong></td><td><strong>70.4±1.2</strong></td><td><strong>50.5±1.3</strong></td><td><strong>69.3</strong></td><td>+16.2</td></tr>
+<tr class="group-row"><td colspan="8">PLDM</td></tr>
+<tr><td>one plan</td><td>96.8±0.4</td><td>93.6±1.0</td><td>76.1±1.8</td><td>60.3±2.3</td><td>56.1±1.8</td><td>76.6</td><td>–</td></tr>
+<tr class="ours-row"><td>+ TEMPO (ours)</td><td><strong>98.9±0.3</strong></td><td><strong>94.5±1.0</strong></td><td><strong>90.1±1.2</strong></td><td><strong>68.7±1.4</strong></td><td><strong>58.4±1.3</strong></td><td><strong>82.1</strong></td><td>+5.5</td></tr>
+<tr><td>two plans</td><td>82.0±2.0</td><td>93.6±0.6</td><td>31.9±1.5</td><td>48.5±1.7</td><td>43.6±0.9</td><td>59.9</td><td>–</td></tr>
+<tr class="ours-row"><td>+ TEMPO (ours)</td><td><strong>97.2±0.5</strong></td><td><strong>98.0±0.4</strong></td><td><strong>39.5±1.8</strong></td><td><strong>48.7±1.8</strong></td><td><strong>45.9±1.2</strong></td><td><strong>65.8</strong></td><td>+5.9</td></tr>
+<tr><td>three plans</td><td>70.5±1.4</td><td>88.0±0.5</td><td>11.6±1.3</td><td>65.6±1.7</td><td>38.7±1.7</td><td>54.9</td><td>–</td></tr>
+<tr class="ours-row"><td>+ TEMPO (ours)</td><td><strong>95.7±1.1</strong></td><td><strong>97.7±0.5</strong></td><td><strong>17.1±1.7</strong></td><td><strong>66.7±2.0</strong></td><td><strong>41.1±1.5</strong></td><td><strong>63.7</strong></td><td>+8.8</td></tr>
+</tbody>
+</table></div>
+      <h3>More complex tasks</h3>
+      <p class="fine">Cross-room TwoRoom is PLDM's Two-Rooms evaluation, with the goal always in the other room (budgets of 50, 100 and 150
+        steps). † Wall episodes end at 50 steps, so its two-plan cell uses goal 40 and it has no three-plan cell.</p>
+      <div class="table-wrapper"><table class="results-table">
+<thead>
+<tr>
+<th>Planner</th>
+<th>Wall†</th>
+<th>TwoRoom cross-room</th>
+<th>PointMaze M</th>
+<th>PointMaze L</th>
+<th>Ant-U</th>
+<th>Avg.</th>
+<th>Δ</th>
+</tr>
+</thead>
+<tbody>
+<tr class="group-row"><td colspan="8">LeWM</td></tr>
+<tr><td>one plan</td><td>67.6±1.4</td><td>12.0±1.0</td><td>32.1±1.4</td><td>28.0±2.0</td><td>19.7±1.0</td><td>31.9</td><td>–</td></tr>
+<tr class="ours-row"><td>+ TEMPO (ours)</td><td><strong>75.7±2.2</strong></td><td><strong>46.5±1.2</strong></td><td><strong>75.7±1.7</strong></td><td><strong>54.8±1.6</strong></td><td><strong>21.9±1.1</strong></td><td><strong>54.9</strong></td><td>+23.0</td></tr>
+<tr><td>two plans</td><td>57.7±2.4</td><td>15.5±1.0</td><td>17.6±1.0</td><td>2.9±0.6</td><td>25.5±1.5</td><td>23.8</td><td>–</td></tr>
+<tr class="ours-row"><td>+ TEMPO (ours)</td><td><strong>65.9±2.2</strong></td><td><strong>69.6±1.8</strong></td><td><strong>41.1±2.0</strong></td><td><strong>21.3±1.2</strong></td><td><strong>29.6±1.0</strong></td><td><strong>45.5</strong></td><td>+21.7</td></tr>
+<tr><td>three plans</td><td>–</td><td>17.1±1.1</td><td>10.8±0.8</td><td>0.3±0.2</td><td>28.1±1.6</td><td>14.1</td><td>–</td></tr>
+<tr class="ours-row"><td>+ TEMPO (ours)</td><td>–</td><td><strong>74.5±1.7</strong></td><td><strong>31.7±1.0</strong></td><td><strong>6.5±1.0</strong></td><td><strong>34.0±2.1</strong></td><td><strong>36.7</strong></td><td>+22.6</td></tr>
+<tr class="group-row"><td colspan="8">PLDM</td></tr>
+<tr><td>one plan</td><td>71.2±1.9</td><td>23.9±1.5</td><td>22.8±2.1</td><td>32.3±1.5</td><td>17.1±1.5</td><td>33.5</td><td>–</td></tr>
+<tr class="ours-row"><td>+ TEMPO (ours)</td><td><strong>82.3±1.7</strong></td><td><strong>42.5±1.5</strong></td><td><strong>43.1±1.8</strong></td><td><strong>48.5±2.9</strong></td><td><strong>18.5±1.7</strong></td><td><strong>47.0</strong></td><td>+13.5</td></tr>
+<tr><td>two plans</td><td>63.5±2.4</td><td>35.2±1.7</td><td>16.8±1.0</td><td>6.5±0.7</td><td>24.3±1.1</td><td>29.3</td><td>–</td></tr>
+<tr class="ours-row"><td>+ TEMPO (ours)</td><td><strong>72.5±1.4</strong></td><td><strong>62.0±1.6</strong></td><td><strong>26.9±2.1</strong></td><td><strong>15.1±1.8</strong></td><td><strong>29.3±1.7</strong></td><td><strong>41.2</strong></td><td>+11.9</td></tr>
+<tr><td>three plans</td><td>–</td><td>39.1±1.8</td><td>8.7±0.8</td><td>3.1±0.8</td><td>26.8±1.5</td><td>19.4</td><td>–</td></tr>
+<tr class="ours-row"><td>+ TEMPO (ours)</td><td>–</td><td><strong>65.1±1.7</strong></td><td><strong>16.7±0.8</strong></td><td><strong>7.1±1.0</strong></td><td><strong>29.3±1.7</strong></td><td><strong>29.5</strong></td><td>+10.1</td></tr>
+</tbody>
+</table></div>
+    </details>
+  </div>
+</section>
+
+<section class="section alt" id="generalisation">
+  <div class="wrap">
+    <p class="kicker center">Generalisation</p>
+    <h2 class="center">Trained on one layout, still useful on the next</h2>
+    <figure class="card figure">
+      <img src="./static/images/fig_gen_setups.png" alt="Training and test setups for WallRandom, PushObj and TwoRoom with a moved door.">
+      <figcaption>Unseen configurations are outlined in orange: wall and door positions outside every training range (WallRandom), the
+        L, I and + block shapes (PushObj), and a door moved to the opposite end of the wall (TwoRoom).</figcaption>
+    </figure>
+    <div class="grid3">
+      <div class="mini-card"><h3>Unseen layouts</h3><p>Substantially improves the LeWM planner on unseen wall layouts and on the cross-wall
+        test, and both planners three plans out with a moved door.</p></div>
+      <div class="mini-card"><h3>Unseen shapes and shifts</h3><p>Improves PLDM on unseen block shapes, and keeps its advantage under blur,
+        colour jitter, a larger agent or a heavier arm.</p></div>
+      <div class="mini-card"><h3>Kitchen robots</h3><p>Improves both planners on RoboCasa Pick-and-Place and Kitchen-Nav with a mobile
+        manipulator, at every goal distance.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="takeaways">
+  <div class="wrap narrow">
+    <p class="kicker">Takeaways</p>
+    <h2>Fix the cost, not the model</h2>
+    <ul class="takeaways">
+      <li><strong>Long-horizon failure is a cost problem.</strong> Latent distance measures resemblance; planning far ahead needs distance in
+        time.</li>
+      <li><strong>A temporal metric is cheap to learn.</strong> Frame indices of the existing demonstrations are enough: no rewards, no
+        labels, no retraining.</li>
+      <li><strong>It is a drop-in.</strong> One extra term in the planner's cost improves LeWM and PLDM at every goal distance, including the
+        one-plan setting of their own evaluations.</li>
+    </ul>
+  </div>
+</section>
+
+<section class="section cite" id="cite">
+  <div class="wrap narrow">
+    <h2 class="cite-title">BibTeX</h2>
+    <!-- TODO: add eprint / archivePrefix fields once the arXiv identifier exists -->
+    <div class="bib">
+      <button class="copy" id="copy-bib" type="button"><i class="far fa-copy"></i><span>Copy</span></button>
+<pre id="bibtex">@article{moukheiber2026tempo,
+  title   = {How Long, Not How Close: A Learned Temporal Metric
+             for Planning in Latent World Models},
+  author  = {Moukheiber, Lama and Xue, Haotian and Chen, Yongxin},
+  journal = {arXiv preprint},
+  year    = {2026}
+}</pre>
+    </div>
+  </div>
+</section>
+
+<footer class="footer">
+  <img class="footer-logo" src="./static/images/gt_logo.svg" alt="Georgia Institute of Technology">
+  <p>© 2026 Lama Moukheiber, Haotian Xue, Yongxin Chen · Georgia Institute of Technology</p>
+</footer>
+
+<script>
+const DATA = {"LeWM": {"one plan": [["TwoRoom", 87.7, 97.2], ["Reacher", 94.7, 95.5], ["Push-T", 93.6, 95.1], ["Cube", 74.8, 77.1], ["Scene", 69.6, 71.1], ["Wall", 67.6, 75.7], ["TwoRoom cross-room", 12.0, 46.5], ["PointMaze M", 32.1, 75.7], ["PointMaze L", 28.0, 54.8], ["Ant-U", 19.7, 21.9]], "two plans": [["TwoRoom", 58.5, 99.2], ["Reacher", 95.7, 96.8], ["Push-T", 49.7, 55.7], ["Cube", 57.9, 58.7], ["Scene", 56.4, 57.9], ["Wall", 57.7, 65.9], ["TwoRoom cross-room", 15.5, 69.6], ["PointMaze M", 17.6, 41.1], ["PointMaze L", 2.9, 21.3], ["Ant-U", 25.5, 29.6]], "three plans": [["TwoRoom", 36.3, 99.2], ["Reacher", 89.7, 98.4], ["Push-T", 22.0, 28.1], ["Cube", 68.7, 70.4], ["Scene", 48.7, 50.5], ["TwoRoom cross-room", 17.1, 74.5], ["PointMaze M", 10.8, 31.7], ["PointMaze L", 0.3, 6.5], ["Ant-U", 28.1, 34.0]]}, "PLDM": {"one plan": [["TwoRoom", 96.8, 98.9], ["Reacher", 93.6, 94.5], ["Push-T", 76.1, 90.1], ["Cube", 60.3, 68.7], ["Scene", 56.1, 58.4], ["Wall", 71.2, 82.3], ["TwoRoom cross-room", 23.9, 42.5], ["PointMaze M", 22.8, 43.1], ["PointMaze L", 32.3, 48.5], ["Ant-U", 17.1, 18.5]], "two plans": [["TwoRoom", 82.0, 97.2], ["Reacher", 93.6, 98.0], ["Push-T", 31.9, 39.5], ["Cube", 48.5, 48.7], ["Scene", 43.6, 45.9], ["Wall", 63.5, 72.5], ["TwoRoom cross-room", 35.2, 62.0], ["PointMaze M", 16.8, 26.9], ["PointMaze L", 6.5, 15.1], ["Ant-U", 24.3, 29.3]], "three plans": [["TwoRoom", 70.5, 95.7], ["Reacher", 88.0, 97.7], ["Push-T", 11.6, 17.1], ["Cube", 65.6, 66.7], ["Scene", 38.7, 41.1], ["TwoRoom cross-room", 39.1, 65.1], ["PointMaze M", 8.7, 16.7], ["PointMaze L", 3.1, 7.1], ["Ant-U", 26.8, 29.3]]}};
+const HORIZONS = [["one plan", "1 plan"], ["two plans", "2 plans"], ["three plans", "3 plans"]];
+const state = { planner: "LeWM", horizon: "three plans" };
+
+function seg(id, options, key) {
+  const el = document.getElementById(id);
+  el.innerHTML = "";
+  options.forEach(([value, label]) => {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.textContent = label;
+    b.className = state[key] === value ? "on" : "";
+    b.setAttribute("aria-pressed", state[key] === value);
+    b.onclick = () => { state[key] = value; render(); };
+    el.appendChild(b);
+  });
+}
+
+function render() {
+  seg("seg-planner", Object.keys(DATA).map(p => [p, p]), "planner");
+  seg("seg-horizon", HORIZONS, "horizon");
+  document.getElementById("lg-flat").textContent = state.planner + " planner";
+  const rows = DATA[state.planner][state.horizon];
+  const gain = rows.reduce((s, r) => s + (r[2] - r[1]), 0) / rows.length;
+  document.getElementById("avg-gain").innerHTML = "Average gain <b>" + (gain >= 0 ? "+" : "") + gain.toFixed(1) + " pts</b>";
+  document.getElementById("bars").innerHTML = rows.map(([env, f, o]) => {
+    const d = o - f;
+    return `<div class="row">
+      <div class="env">${env}</div>
+      <div class="track">
+        <div class="bar flat" style="width:${f * 0.88}%"><span>${f.toFixed(1)}</span></div>
+        <div class="bar ours" style="width:${o * 0.88}%"><span>${o.toFixed(1)}</span></div>
+      </div>
+      <div class="delta ${d >= 0 ? "up" : "down"}">${d >= 0 ? "+" : ""}${d.toFixed(1)}</div>
+    </div>`;
+  }).join("");
+}
+render();
+
+document.getElementById("copy-bib").onclick = async (e) => {
+  const btn = e.currentTarget;
+  try {
+    await navigator.clipboard.writeText(document.getElementById("bibtex").textContent);
+    btn.querySelector("span").textContent = "Copied";
+  } catch (err) {
+    btn.querySelector("span").textContent = "Select and copy";
+  }
+  setTimeout(() => { btn.querySelector("span").textContent = "Copy"; }, 1800);
+};
+
+// ---------- problem section: collapse bars and the wall/door demo ----------
+(function () {
+  const strip = document.getElementById("collapse-strip");
+  const fills = strip.querySelectorAll(".c-fill");
+  fills.forEach(f => { f.style.width = f.dataset.from + "%"; });
+  const shrink = () => fills.forEach(f => { f.style.width = f.dataset.to + "%"; });
+
+  const agent = document.getElementById("agent"), trail = document.getElementById("trail");
+  const bump = document.getElementById("bump"), status = document.getElementById("demo-status");
+  const segBtns = document.querySelectorAll("#demo-seg button");
+  const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let raf = null;
+
+  function play(mode) {
+    segBtns.forEach(b => b.classList.toggle("on", b.dataset.mode === mode));
+    cancelAnimationFrame(raf);
+    const path = document.getElementById(mode === "latent" ? "path-latent" : "path-tempo");
+    const len = path.getTotalLength();
+    trail.setAttribute("d", path.getAttribute("d"));
+    trail.setAttribute("class", "trail " + mode);
+    trail.style.strokeDasharray = len; trail.style.strokeDashoffset = len;
+    bump.setAttribute("opacity", 0);
+    status.className = "demo-status"; status.innerHTML = "&nbsp;";
+    const dur = reduce ? 1 : (mode === "latent" ? 1600 : 2400);
+    const t0 = performance.now();
+    const step = (now) => {
+      const p = Math.min(1, (now - t0) / dur), e = 1 - Math.pow(1 - p, 3);
+      const pt = path.getPointAtLength(e * len);
+      agent.setAttribute("cx", pt.x); agent.setAttribute("cy", pt.y);
+      trail.style.strokeDashoffset = len * (1 - e);
+      if (p < 1) { raf = requestAnimationFrame(step); return; }
+      if (mode === "latent") {
+        bump.setAttribute("opacity", 1);
+        status.className = "demo-status bad";
+        status.textContent = "Latent distance: the closest-looking state is against the wall. The agent gets stuck.";
+      } else {
+        status.className = "demo-status good";
+        status.textContent = "TEMPO: fewest steps to go is through the door. The agent reaches the goal.";
+      }
+    };
+    raf = requestAnimationFrame(step);
+  }
+  segBtns.forEach(b => b.onclick = () => play(b.dataset.mode));
+
+  play("latent");
+  if (!reduce) setTimeout(() => play("tempo"), 3400);
+  if ("IntersectionObserver" in window) {
+    new IntersectionObserver((es, ob) => {
+      if (es.some(e => e.isIntersecting)) { shrink(); ob.disconnect(); }
+    }, { threshold: 0.4 }).observe(strip);
+  } else { shrink(); }
+})();
+
+
+// ---------- method: rollout videos, one per environment ----------
+(function () {
+  const V = [{"key": "tworoom", "label": "TwoRoom", "caption": "Left: the LeWM planner circles beside the door until its 150 steps run out. Right: with TEMPO's cost the agent goes through the door and reaches the goal (green disc, the environment's success region) at step 32. This window is one of the 164 of 250 TwoRoom test windows where the plain planner fails and TEMPO succeeds; the replay matches the paper's recorded outcome for both planners."}];
+  const seg = document.getElementById("video-seg"), vid = document.getElementById("rollout"), cap = document.getElementById("video-caption");
+  let cur = V[0] && V[0].key;
+  function show(k) {
+    cur = k;
+    const v = V.find(x => x.key === k);
+    seg.querySelectorAll("button").forEach(b => b.classList.toggle("on", b.dataset.k === k));
+    vid.poster = `./static/videos/${k}_g75_lewm_vs_tempo.png`;
+    vid.src = `./static/videos/${k}_g75_lewm_vs_tempo.mp4`;
+    vid.setAttribute("aria-label", v.label + " rollouts: LeWM planner versus LeWM with TEMPO");
+    cap.textContent = v.caption;
+    vid.play().catch(() => {});
+  }
+  V.forEach(v => {
+    const b = document.createElement("button");
+    b.type = "button"; b.textContent = v.label; b.dataset.k = v.key; b.onclick = () => show(v.key);
+    seg.appendChild(b);
+  });
+  seg.style.display = V.length > 1 ? "" : "none";
+  if (cur) show(cur);
+})();
+</script>
+</body>
+</html>
