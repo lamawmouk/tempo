@@ -11,6 +11,8 @@
 ![PyTorch](https://img.shields.io/badge/PyTorch-2.x-ee4c2c)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
+**[🌐 Project page](https://lamawmouk.github.io/tempo/)** · **[▶️ 1-minute video](https://lamawmouk.github.io/tempo/static/videos/tempo_teaser.mp4)** · 📄 arXiv (soon)
+
 <img src="docs/assets/teaser.png" width="88%" alt="Latent distance picks the plan that looks nearest; TEMPO picks the plan with the fewest steps to the goal.">
 
 </div>
