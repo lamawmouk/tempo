@@ -4,7 +4,7 @@
 
 ### Plan by *time to the goal*, not by latent distance
 
-**TEMPO** (**TEM**poral-distance **P**lanning **O**bjective) is a drop-in planning cost for frozen latent world models such as **LeWM**, **PLDM** and **DINO-WM**. You don't retrain the world model, and you don't need rewards, labels or a new planner.
+**TEMPO** (**TEM**poral-distance **P**lanning **O**bjective) is a drop-in planning cost for frozen latent world models such as **LeWM** and **PLDM**. You don't retrain the world model, and you don't need rewards, labels or a new planner.
 
 [![CI](https://github.com/lamawmouk/tempo/actions/workflows/ci.yml/badge.svg)](https://github.com/lamawmouk/tempo/actions/workflows/ci.yml)
 ![Python](https://img.shields.io/badge/python-3.10%2B-blue)
