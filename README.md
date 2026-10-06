@@ -11,7 +11,7 @@
 ![PyTorch](https://img.shields.io/badge/PyTorch-2.x-ee4c2c)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
-**[🌐 Project page](https://lamawmouk.github.io/tempo/)** · **[▶️ 1-minute video](https://lamawmouk.github.io/tempo/static/videos/tempo_teaser.mp4)** · 📄 arXiv (soon)
+**[🌐 Project page](https://lamawmouk.github.io/tempo/)** · **[▶️ 1-minute video](https://lamawmouk.github.io/tempo/static/videos/tempo_teaser.mp4)** · **[📄 arXiv](https://arxiv.org/abs/2610.04988)**
 
 <img src="docs/assets/teaser.png" width="88%" alt="Latent distance picks the plan that looks nearest; TEMPO picks the plan with the fewest steps to the goal.">
 
@@ -174,6 +174,17 @@ tests/                unit tests + an end-to-end run on a real World
 ## 🤝 Contributing
 
 Issues and pull requests are welcome. Before opening a PR, run `ruff check . && ruff format --check . && pytest`. CI runs the same checks.
+
+## 📖 Citation
+
+```bibtex
+@article{moukheiber2026tempo,
+  title   = {How Long, Not How Close: A Learned Temporal Metric for Planning in Latent World Models},
+  author  = {Moukheiber, Lama and Xue, Haotian and Chen, Yongxin},
+  journal = {arXiv preprint arXiv:2610.04988},
+  year    = {2026}
+}
+```
 
 ## 📜 License
 
