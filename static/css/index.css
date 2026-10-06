@@ -79,21 +79,21 @@ img { max-width: 100%; display: block; }
   color: var(--blue); font-weight: 700; font-size: 0.82rem; letter-spacing: 0.08em; text-transform: uppercase;
 }
 .title {
-  margin: 0 auto 28px; max-width: 980px;
-  font-size: clamp(1.9rem, 3.8vw, 2.9rem); font-weight: 800; line-height: 1.15; letter-spacing: -0.02em; text-wrap: balance;
+  margin: 0 auto 30px; max-width: 960px;
+  font-size: clamp(2rem, 5vw, 3.9rem); font-weight: 800; line-height: 1.1; letter-spacing: -0.02em;
 }
-.authors { margin: 0; font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 700; font-size: 1.22rem; color: var(--ink); }
+.authors { margin: 0; font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 700; font-size: clamp(1.15rem, 2vw, 1.5rem); color: var(--ink); }
 .affil { margin: 10px 0 0; color: var(--muted); font-size: 1rem; display: inline-flex; align-items: flex-start; gap: 2px; }
 .affil sup { margin-top: 12px; }
-.affil-logo { height: 60px; width: auto; }
+.affil-logo { height: 72px; width: auto; }
 .footer-logo { height: 40px; width: auto; margin: 0 auto 12px; }
 sup { font-size: 0.62em; margin-left: 1px; }
 
 .buttons { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin: 26px 0 36px; }
 .btn {
   display: inline-flex; align-items: center; gap: 8px;
-  padding: 10px 20px; border-radius: 999px;
-  background: var(--ink); color: #fff; font-weight: 600; font-size: 0.98rem;
+  padding: 12px 26px; border-radius: 999px;
+  background: var(--ink); color: #fff; font-weight: 600; font-size: 1.08rem;
   transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 .btn:hover { transform: translateY(-1px); box-shadow: 0 8px 20px rgba(15, 23, 42, 0.18); color: #fff; }
