@@ -1,4 +1,4 @@
-"""TEMPO: a temporal-distance planning objective for frozen latent world models."""
+"""TEMPO: a temporal planning objective for frozen latent world models."""
 
 from tempo.temporal_map import TemporalMap, temporal_distance_loss
 

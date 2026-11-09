@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "tempo"
 version = "0.1.0"
-description = "TEMPO: a temporal-distance planning objective for frozen latent world models"
+description = "TEMPO: a temporal planning objective for frozen latent world models"
 readme = "README.md"
 license = "MIT"
 requires-python = ">=3.10"

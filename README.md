@@ -2,9 +2,9 @@
 
 # ⏱️ TEMPO
 
-### Plan by *time to the goal*, not by latent distance
+### How Long, Not How Close: Blending a Learned Temporal Embedding into Latent World Model Planning
 
-**TEMPO** (**TEM**poral-distance **P**lanning **O**bjective) is a drop-in planning cost for frozen latent world models such as **LeWM** and **PLDM**. You don't retrain the world model, and you don't need rewards, labels or a new planner.
+**TEMPO** (**TEM**poral **P**lanning **O**bjective) blends a learned temporal embedding into the planning cost of frozen latent world models such as **LeWM** and **PLDM**, so the planner ranks plans by *time to the goal*, not only by latent distance. You don't retrain the world model, and you don't need rewards, labels or a new planner.
 
 [![CI](https://github.com/lamawmouk/tempo/actions/workflows/ci.yml/badge.svg)](https://github.com/lamawmouk/tempo/actions/workflows/ci.yml)
 ![Python](https://img.shields.io/badge/python-3.10%2B-blue)
@@ -64,7 +64,7 @@ tempo run --env pusht_split --wm pldm --seed 43 eval.goal_offset=75    # three p
 tempo run --env tworoom --wm lewm --seed 42 --smoke                    # tiny end-to-end check
 ```
 
-A run does four stages: **encode** the training frames with the frozen encoder, train $F_\phi$ **offline** on expert windows, keep training it **online** on the planner's own episodes, then **evaluate** on 5 fixed groups of 50 windows. Results go to `runs/<cell>/eval.json`.
+A run does four stages: **encode** the training frames with the frozen encoder, train $F_\phi$ **offline** on windows of the training data, keep training it **online** on the planner's own episodes, then **evaluate** on 5 fixed groups of 50 windows. Results go to `runs/<cell>/eval.json`.
 
 ---
 
@@ -179,7 +179,7 @@ Issues and pull requests are welcome. Before opening a PR, run `ruff check . && 
 
 ```bibtex
 @article{moukheiber2026tempo,
-  title   = {How Long, Not How Close: A Learned Temporal Metric for Planning in Latent World Models},
+  title   = {How Long, Not How Close: Blending a Learned Temporal Embedding into Latent World Model Planning},
   author  = {Moukheiber, Lama and Xue, Haotian and Chen, Yongxin},
   journal = {arXiv preprint arXiv:2610.04988},
   year    = {2026}
