@@ -82,6 +82,7 @@ img { max-width: 100%; display: block; }
   margin: 0 auto 30px; max-width: 960px;
   font-size: clamp(2rem, 5vw, 3.9rem); font-weight: 800; line-height: 1.1; letter-spacing: -0.02em;
 }
+.title-sub { display: block; margin-top: 10px; font-size: 0.66em; line-height: 1.15; text-wrap: balance; }
 .authors { margin: 0; font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 700; font-size: clamp(1.15rem, 2vw, 1.5rem); color: var(--ink); }
 .affil { margin: 10px 0 0; color: var(--muted); font-size: 1rem; display: inline-flex; align-items: flex-start; gap: 2px; }
 .affil sup { margin-top: 12px; }

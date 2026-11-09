@@ -4,8 +4,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>TEMPO: How Long, Not How Close</title>
-  <meta name="description" content="TEMPO: a learned temporal metric that lets frozen latent world models plan to goals several plans away. LeWM 36% to 99% on TwoRoom, with a 0.13M-parameter map and at most 0.3% extra compute.">
-  <meta property="og:title" content="How Long, Not How Close: A Learned Temporal Metric for Planning in Latent World Models">
+  <meta name="description" content="TEMPO blends a learned temporal embedding into the planning cost of frozen latent world models, so they reach goals several plans away. LeWM 36% to 99% on TwoRoom, with a 0.13M-parameter map and at most 0.3% extra compute.">
+  <meta property="og:title" content="How Long, Not How Close: Blending a Learned Temporal Embedding into Latent World Model Planning">
   <meta property="og:description" content="Frozen world-model planners collapse when the goal is several plans away. TEMPO fixes the cost, not the model: LeWM 36% to 99% on TwoRoom.">
   <meta property="og:image" content="./static/images/fig_teaser_temporal.png">
   <meta name="twitter:card" content="summary_large_image">
@@ -34,7 +34,7 @@
 
 <header class="hero" id="top">
   <div class="wrap">
-    <h1 class="title"><span class="grad">How Long, Not How Close:</span><br>A Learned Temporal Metric for Planning in Latent World Models</h1>
+    <h1 class="title"><span class="grad">How Long, Not How Close:</span><span class="title-sub">Blending a Learned Temporal Embedding into Latent World Model Planning</span></h1>
 
     <p class="authors">Lama Moukheiber<sup>1</sup>, Haotian Xue<sup>1</sup>, Yongxin Chen<sup>1</sup></p>
     <p class="affil"><sup>1</sup><img class="affil-logo" src="./static/images/gt_logo.svg" alt="Georgia Institute of Technology"></p>
@@ -291,7 +291,7 @@
     <ul class="takeaways">
       <li><strong>Planning far ahead is a cost problem.</strong> Latent distance measures resemblance; planning far ahead needs distance in
         time.</li>
-      <li><strong>A temporal metric is cheap to learn.</strong> Frame indices of the recorded trajectories are enough: no rewards, no
+      <li><strong>A temporal embedding is cheap to learn.</strong> Frame indices of the recorded trajectories are enough: no rewards, no
         labels, no retraining.</li>
       <li><strong>It is a drop-in.</strong> One extra term in the planner's cost improves LeWM and PLDM at every goal distance, including the
         one-plan setting of their own evaluations.</li>
@@ -305,8 +305,8 @@
     <div class="bib">
       <button class="copy" id="copy-bib" type="button"><i class="far fa-copy"></i><span>Copy</span></button>
 <pre id="bibtex">@article{moukheiber2026tempo,
-  title   = {How Long, Not How Close: A Learned Temporal Metric
-             for Planning in Latent World Models},
+  title   = {How Long, Not How Close: Blending a Learned Temporal
+             Embedding into Latent World Model Planning},
   author  = {Moukheiber, Lama and Xue, Haotian and Chen, Yongxin},
   journal = {arXiv preprint arXiv:2610.04988},
   year    = {2026}
