@@ -6,7 +6,7 @@
   <title>TEMPO: How Long, Not How Close</title>
   <meta name="description" content="TEMPO blends a learned temporal embedding into the planning cost of frozen latent world models, so they reach goals several plans away. LeWM 36% to 99% on TwoRoom, with a 0.13M-parameter map and at most 0.3% extra compute.">
   <meta property="og:title" content="How Long, Not How Close: Blending a Learned Temporal Embedding into Latent World Model Planning">
-  <meta property="og:description" content="Frozen world-model planners collapse when the goal is several plans away. TEMPO fixes the cost, not the model: LeWM 36% to 99% on TwoRoom.">
+  <meta property="og:description" content="TEMPO blends a learned temporal embedding into the planner's cost and leaves the world model frozen: LeWM 36% to 99% on TwoRoom, three plans from the goal.">
   <meta property="og:image" content="./static/images/fig_teaser_temporal.png">
   <meta name="twitter:card" content="summary_large_image">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -50,8 +50,8 @@
     </figure>
 
     <div class="summary">
-      <p class="pitch">A latent world model predicts what happens next, but its planning cost cannot tell <em>how far</em> the goal is.
-        <strong>TEMPO</strong> teaches it, without touching the model.</p>
+      <p class="pitch">A latent world model's planning cost measures how <em>visually close</em> a state is to the goal, not <em>how long</em> it takes to get there.
+        <strong>TEMPO</strong> blends a learned temporal embedding into that cost, without touching the model.</p>
 
       <div class="stats">
         <div class="stat">
@@ -93,16 +93,16 @@
         <p class="vs-a">Several plans away, the best-looking state is pressed against the wall, dozens of steps from the goal.</p>
       </div>
       <div class="vs-card vs-new">
-        <p class="vs-tag">TEMPO asks</p>
-        <p class="vs-q">"How many <em>steps</em> are you from the goal?"</p>
-        <p class="vs-a">Every short plan is ranked by how much of the task it leaves, so the chain of plans follows the real route.</p>
+        <p class="vs-tag">TEMPO also asks</p>
+        <p class="vs-q">"How <em>long</em> will it take you to reach the goal?"</p>
+        <p class="vs-a">Blended with the latent distance, it ranks each short plan by how much of the task it leaves, so the chain of plans follows the real route.</p>
       </div>
     </div>
 
     <div class="callout narrow-text">
       <i class="fas fa-lightbulb"></i>
-      <p>The collapse comes from the <strong>cost</strong> the planners share, not from any one world model. So we fix the cost and leave
-        the model alone.</p>
+      <p>Both planners share the same latent <strong>cost</strong> and degrade the same way far from the goal. So we change the cost and
+        leave the model alone.</p>
     </div>
   </div>
 </section>
@@ -110,7 +110,7 @@
 <section class="section alt" id="method">
   <div class="wrap">
     <p class="kicker center">The method</p>
-    <h2 class="center">A small map that counts steps, blended into the planner's cost</h2>
+    <h2 class="center">A learned temporal embedding, blended into the planner's cost</h2>
     <figure class="card figure video-figure">
       <div class="video-head">
         <p class="demo-q">Same start, goal and frozen LeWM model; only the planning cost differs</p>
@@ -122,7 +122,7 @@
         <summary><i class="fas fa-diagram-project"></i>Show where TEMPO sits in the planner</summary>
         <img src="./static/images/fig_pipeline_temporal.png" alt="TEMPO in the planner.">
         <p class="fine">LeWM's frozen encoder $E$ and predictor $\mathrm{WM}$ are unchanged and nothing is decoded. TEMPO adds the map
-          $F_\phi$ (orange) and scores each CEM candidate by how many steps its end state still is from the goal.</p>
+          $F_\phi$ (orange) and adds to each CEM candidate's score how far in time its end state still is from the goal.</p>
       </details>
     </figure>
 
@@ -130,8 +130,8 @@
       <details class="step">
         <summary>
           <div class="step-num">1</div>
-          <h3>Learn to count steps</h3>
-          <p class="step-brief">A tiny network learns a distance that counts environment steps.</p>
+          <h3>Learn a temporal embedding</h3>
+          <p class="step-brief">A small network maps each frozen latent to an embedding whose distances reflect time.</p>
           <span class="step-more">Details <i class="fas fa-chevron-down"></i></span>
         </summary>
         <p>$F_\phi$, a two-layer MLP on the frozen 192-d latent, is trained so that the distance between two frames of the same episode equals
@@ -287,10 +287,10 @@
 <section class="section" id="takeaways">
   <div class="wrap narrow">
     <p class="kicker">Takeaways</p>
-    <h2>Fix the cost, not the model</h2>
+    <h2>Change the cost, not the model</h2>
     <ul class="takeaways">
-      <li><strong>Planning far ahead is a cost problem.</strong> Latent distance measures resemblance; planning far ahead needs distance in
-        time.</li>
+      <li><strong>The cost matters for planning far ahead.</strong> Latent distance measures resemblance. Planning far ahead also needs
+        distance in time.</li>
       <li><strong>A temporal embedding is cheap to learn.</strong> Frame indices of the recorded trajectories are enough: no rewards, no
         labels, no retraining.</li>
       <li><strong>It is a drop-in.</strong> One extra term in the planner's cost improves LeWM and PLDM at every goal distance, including the
